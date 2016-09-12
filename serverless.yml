@@ -1,0 +1,73 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: matcha-serverless-timesheets 
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  stage: dev
+  region: ap-southeast-2
+# you can add statements to the Lambda function's IAM Role here
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:GetItem"
+        - "dynamodb:GetRecords"
+        - "dynamodb:PutItem"
+        - "dynamodb:Query"
+        - "dynamodb:Scan"
+      Resource:
+        - "Fn::Join": ["", ["arn:aws:dynamodb:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":table/Timesheets"]]
+
+# you can add packaging information here
+package:
+  exclude:
+    - Scripts
+    - SamplePayloads
+    - .git
+    - readme.md
+
+# https://github.com/serverless/serverless/blob/master/docs/02-providers/aws/events/01-apigateway.md
+functions:
+  createTimesheet:
+    handler: handler.createTimesheet
+    events:
+      - http: 
+          path: timesheet
+          method: POST
+
+resources:
+  Resources:
+    TimesheetDb:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+          -
+            AttributeName: eventId
+            AttributeType: N
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+          -
+            AttributeName: eventId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: 'Timesheets'
