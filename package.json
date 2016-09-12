@@ -1,0 +1,19 @@
+{
+  "name": "ServerlessTimesheet",
+  "version": "0.0.1",
+  "description": "Timsheets on the Serverless stack",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatchaIO/ServerlessTimesheet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MatchaIO/ServerlessTimesheet/issues"
+  },
+  "homepage": "https://github.com/MatchaIO/ServerlessTimesheet#readme",
+  "dependencies": {
+    "node-uuid": "^1.4.7"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.6.1"
+  }
+}
