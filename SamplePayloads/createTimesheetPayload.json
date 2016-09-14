@@ -26,12 +26,12 @@
 			"breaks" : [3600000],
 			"notes" : {
 				"text" : "Left early for a beer",
-				//"isPrivate" : true
+				"isPrivate" : true
 			}
 		}
 	],
 	"notes" : {
 		"text" : "Remind the boss to approve",
-		//"isPrivate" : true
+		"isPrivate" : true
 	}
 }
