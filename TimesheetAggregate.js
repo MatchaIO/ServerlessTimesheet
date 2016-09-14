@@ -1,5 +1,4 @@
 "use strict";
-var uuid = require('node-uuid');
 const SEED_VERSION = 0;
 
 class AggregateBase {
@@ -43,7 +42,7 @@ class Timesheet extends AggregateBase {
     if (this.version != SEED_VERSION)
       throw new InvalidOperationException("Create can only be executed as the first action.");
     var timesheetCreatedEvent = {
-      "id" : uuid.v1(),
+      "id" : this.id,
       "eventId" : 1,
       "eventType" : "TimesheetCreated",
       "sourceLambdaEvent" : JSON.stringify(timesheetCreatedPayload),
@@ -53,6 +52,7 @@ class Timesheet extends AggregateBase {
   }
   handleTimesheetCreated(timesheetCreated){
     this.isSubmitted = false;
+    this.status = "Saved, pending submission"
   }
   constructor(uuid) {
     super(uuid);

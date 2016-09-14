@@ -1,7 +1,9 @@
 "use strict";
-var Timesheet = require('./TimesheetAggregate');
+var uuid = require('node-uuid');
+let Timesheet = require('./TimesheetAggregate');
+let repository = require('./documentDbRepository');
 
-var t = new Timesheet("magicguid123455");
+var t = new Timesheet(uuid.v1());
 t.create({ 
   "body":{
     "shifts" : [{
@@ -42,3 +44,21 @@ t.create({
   }
 })
 console.log(t)
+
+repository.saveAggregate(t)
+  .then(()=> {
+  
+    console.log("timesheet saved");
+    
+    repository.hydrateAggregate(new Timesheet(t.id))
+          .then((a)=> {
+            console.log("Aggregate hydrated:"); 
+            console.log(a)
+          });    
+  })
+  .catch((error) => {
+    console.error("Unable to save. Error: " + error, JSON.stringify(error, null, 2));
+  })
+  .done();
+
+  
