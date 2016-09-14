@@ -25,6 +25,7 @@ provider:
         - "dynamodb:GetItem"
         - "dynamodb:GetRecords"
         - "dynamodb:PutItem"
+        - "dynamodb:BatchWriteItem"
         - "dynamodb:Query"
         - "dynamodb:Scan"
       Resource:
@@ -35,6 +36,7 @@ package:
   exclude:
     - Scripts
     - SamplePayloads
+    - Sample.js
     - .git
     - readme.md
 

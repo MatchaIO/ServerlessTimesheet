@@ -13,8 +13,9 @@ module.exports.createTimesheet = (event, context, callback) => {
       callback(null, response)
     })
     .catch((error) => {
-      console.error("Unable to save timesheet . Error JSON:", JSON.stringify(err));
-      callback(new Error('[422] Unprocessable Entity - ' + JSON.stringify(event) + ' - error: ' + JSON.stringify(err)));
+      console.error(error);
+      console.error("Unable to save timesheet . Error JSON:", JSON.stringify(error));
+      callback(new Error('[422] Unprocessable Entity - ' + JSON.stringify(event) + ' - error: ' + JSON.stringify(error)));
     })
     .done();
 };

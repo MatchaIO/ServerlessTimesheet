@@ -4,7 +4,7 @@ AWS.config.update({
   region: "ap-southeast-2"
 });
 //https://blogs.aws.amazon.com/javascript/post/Tx3BZ2DC4XARUGG/Support-for-Promises-in-the-SDK
-AWS.config.setPromisesDependency(require('Q').Promise)
+AWS.config.setPromisesDependency(require('q').Promise)
 
 //The aggregate here is the newly constructed aggregate (ie new MyAggregate("myId")) with no events passed thru it.
 function hydrateAggregate(aggregate){
