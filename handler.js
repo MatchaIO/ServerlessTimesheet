@@ -7,9 +7,9 @@ module.exports.createTimesheet = (event, context, callback) => {
   var newTimesheet = new Timesheet(uuid.v1());
   newTimesheet.create(event);
   repository.saveAggregate(newTimesheet)
-    .then((savedTimesheet)=> {
-      console.log("Created Timesheet. JSON:", JSON.stringify(savedTimesheet));
-      var response = { message: 'Created Timesheet', timesheetId: savedTimesheet.id , data: savedTimesheet};
+    .then((unprocessedEntities)=> {
+      console.log("Created Timesheet. JSON:", JSON.stringify(newTimesheet));
+      var response = { message: 'Created Timesheet', timesheetId: newTimesheet.id , data: newTimesheet};
       callback(null, response)
     })
     .catch((error) => {
