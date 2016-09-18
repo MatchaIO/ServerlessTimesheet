@@ -36,5 +36,11 @@ https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
 Favouring using NPM as the build tool unitll we really need more. see: https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
 
 ### Build server
-https://github.com/lambci/lambci
- - get to it!
+Using LambCI for build automation : https://github.com/lambci/lambci
+Github tken is under RHYSC account "LambCi-Matcha-ServerlessTimesheets"
+Slack channel broadcasts the build notiifcations 
+    Org : matcha-io
+    channel : lambci-build
+I blindly created this in the Nth Virgina region (us-east-1), shouldnt be a big drama, unless you are browsing the console for 
+Stack       LambCi-Matcha-ServerlessTimesheets
+Stack ID:   arn:aws:cloudformation:us-east-1:032574790532:stack/LambCi-Matcha-ServerlessTimesheets/71e3e1d0-7d7e-11e6-9df7-5044763dbb7b*
