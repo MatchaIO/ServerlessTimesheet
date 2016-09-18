@@ -43,7 +43,7 @@ t.create({
     }
   }
 })
-console.log(t)
+console.log({"timesheet to be saved":t})
 
 repository.saveAggregate(t)
   .then(()=> {
@@ -53,7 +53,8 @@ repository.saveAggregate(t)
     repository.hydrateAggregate(new Timesheet(t.id))
           .then((a)=> {
             console.log("Aggregate hydrated:"); 
-            console.log(a)
+            console.log(a);
+            console.log("=== DONE ==");
           });    
   })
   .catch((error) => {
