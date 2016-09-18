@@ -34,3 +34,7 @@ Mocha is used as the test framework, seems to be most popular, so lets roll with
 https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
 
 Favouring using NPM as the build tool unitll we really need more. see: https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
+
+### Build server
+https://github.com/lambci/lambci
+ - get to it!
