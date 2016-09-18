@@ -1,15 +1,7 @@
 "use strict";
 var Client = require('node-rest-client').Client;
-
-let timesheetRoot = "https://05atesx4h2.execute-api.ap-southeast-2.amazonaws.com/dev/"
-let createTimsheetUrl = timesheetRoot + "timesheet";
- //https://05atesx4h2.execute-api.ap-southeast-2.amazonaws.com/dev/timesheet
-  //PUT - https://05atesx4h2.execute-api.ap-southeast-2.amazonaws.com/dev/timesheet/{id}
-  //POST - https://05atesx4h2.execute-api.ap-southeast-2.amazonaws.com/dev/timesheet/{id}/submit
-
 var client = new Client();
-
-// set content-type header and data as json in args parameter
+let timesheetRoot = "https://05atesx4h2.execute-api.ap-southeast-2.amazonaws.com/dev/"
 client.post(
     timesheetRoot + "timesheet", 
     {
