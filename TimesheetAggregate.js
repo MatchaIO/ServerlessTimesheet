@@ -13,6 +13,7 @@ class AggregateBase {
   }
   _applyEvent(record) {
     var route = this._routeEvents[record.eventsMetadata.eventType];
+    console.log({eventType: record.eventsMetadata.eventType, route: route}); 
     route(record.event);
     ++this.version;
   }
@@ -23,7 +24,7 @@ class AggregateBase {
       "eventsMetadata" : {
         "aggregateType" : this.aggregateType,
         "eventType" : event.eventType,
-        "timestamp" : new Date(),
+        "timestamp" : Date.now(), //milliseconds elapsed since 1 January 1970 00:00:00 UTC
         "sourceLambdaEvent" : event.sourceLambdaEvent
       },
       "event" : event.event
@@ -38,19 +39,37 @@ class Timesheet extends AggregateBase {
     return "Timesheet";
   }
 
-  create(timesheetCreatedPayload) {
+  create(createTimesheetPayload) {
     if (this.version != SEED_VERSION)
       throw new InvalidOperationException("Create can only be executed as the first action.");
     var timesheetCreatedEvent = {
       "id" : this.id,
       "eventId" : 1,
       "eventType" : "TimesheetCreated",
-      "sourceLambdaEvent" : JSON.stringify(timesheetCreatedPayload),
-      "event" : timesheetCreatedPayload.body
+      "sourceLambdaEvent" : JSON.stringify(createTimesheetPayload),
+      "event" : createTimesheetPayload.body
     };
     super._raiseEvent(timesheetCreatedEvent);
   }
+  update(updateTimesheetPayload) {
+    if (this.version == SEED_VERSION)
+      throw new InvalidOperationException("Can not update an uninitialised Aggregate, update can not be executed as the first action.");
+    if(this.isSubmitted)
+      throw new InvalidOperationException("Can not update a submitted timesheet.");
+    var timesheetUpdatedEvent = {
+      "id" : this.id,
+      "eventId" : this.version + 1,
+      "eventType" : "TimesheetUpdated",
+      "sourceLambdaEvent" : JSON.stringify(updateTimesheetPayload),
+      "event" : updateTimesheetPayload.body
+    };
+    super._raiseEvent(timesheetUpdatedEvent);
+  }
   handleTimesheetCreated(timesheetCreated){
+    this.isSubmitted = false;
+    this.status = "Saved, pending submission"
+  }
+  handleTimesheetUpdated(timesheetUpdated){
     this.isSubmitted = false;
     this.status = "Saved, pending submission"
   }
@@ -59,7 +78,8 @@ class Timesheet extends AggregateBase {
     var self = this;
     this._routeEvents = {
       //TODO - if i dont wrap the instance function below, 'this' is undefined in the execution of the method (?!). I probably need an ES6 adult to help here
-      "TimesheetCreated" : (e) => this.handleTimesheetCreated(e) 
+      "TimesheetCreated" : (e) => { this.handleTimesheetCreated(e); },
+      "TimesheetUpdated" : (e) => { this.handleTimesheetUpdated(e); } ,
     };
     this.isSubmitted = false;
   }

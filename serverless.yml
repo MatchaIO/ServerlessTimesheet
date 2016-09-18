@@ -48,6 +48,12 @@ functions:
       - http: 
           path: timesheet
           method: POST
+  updateTimesheet:
+    handler: handler.updateTimesheet
+    events:
+      - http: 
+          path: timesheet/{id}
+          method: PUT
 
 resources:
   Resources:
