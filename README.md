@@ -1,5 +1,11 @@
 # ServerlessTimesheet
 Timsheets on the Serverless stack
+Master status img: https://<bucket>/<project>/branches/master/<somehash>.svg
+https://<bucket>/<project>/branches/master/<somehash>.svg
+
+
+[![Build Status](https://s3.amazonaws.com/lambci-matcha-serverlesstimesheets-buildresults-1ubwlghifgx2q/gh/MatchaIO/ServerlessTimesheet/branches/master/00e71f9862671a7119add8fb718cd78a.svg)](https://s3.amazonaws.com/lambci-matcha-serverlesstimesheets-buildresults-1ubwlghifgx2q/gh/MatchaIO/ServerlessTimesheet/branches/master/1efc9746ea19ab16dee84c497615fa52.html)
+
 
 You will need NPM installed
 Serverless should be installed globally via NPM (currently 1.0.0. rc) 
@@ -34,3 +40,13 @@ Mocha is used as the test framework, seems to be most popular, so lets roll with
 https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
 
 Favouring using NPM as the build tool unitll we really need more. see: https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
+
+### Build server
+Using LambCI for build automation : https://github.com/lambci/lambci
+Github tken is under RHYSC account "LambCi-Matcha-ServerlessTimesheets"
+Slack channel broadcasts the build notiifcations 
+    Org : matcha-io
+    channel : lambci-build
+I blindly created this in the Nth Virgina region (us-east-1), shouldnt be a big drama, unless you are browsing the console for 
+Stack       LambCi-Matcha-ServerlessTimesheets
+Stack ID:   arn:aws:cloudformation:us-east-1:032574790532:stack/LambCi-Matcha-ServerlessTimesheets/71e3e1d0-7d7e-11e6-9df7-5044763dbb7b*
