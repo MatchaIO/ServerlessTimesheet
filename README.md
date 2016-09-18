@@ -1,8 +1,5 @@
 # ServerlessTimesheet
 Timsheets on the Serverless stack
-Master status img: https://<bucket>/<project>/branches/master/<somehash>.svg
-https://<bucket>/<project>/branches/master/<somehash>.svg
-
 
 [![Build Status](https://s3.amazonaws.com/lambci-matcha-serverlesstimesheets-buildresults-1ubwlghifgx2q/gh/MatchaIO/ServerlessTimesheet/branches/master/00e71f9862671a7119add8fb718cd78a.svg)](https://s3.amazonaws.com/lambci-matcha-serverlesstimesheets-buildresults-1ubwlghifgx2q/gh/MatchaIO/ServerlessTimesheet/branches/master/1efc9746ea19ab16dee84c497615fa52.html)
 
