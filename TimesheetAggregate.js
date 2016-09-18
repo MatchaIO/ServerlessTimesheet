@@ -84,4 +84,12 @@ class Timesheet extends AggregateBase {
     this.isSubmitted = false;
   }
 }
-module.exports = Timesheet
+class InvalidOperationException {
+  constrcutor(message){
+   this.message = message;
+   this.toString = function() {
+      return "InvalidOperationException:" + this.message;
+   };
+  }
+}
+module.exports = Timesheet;
