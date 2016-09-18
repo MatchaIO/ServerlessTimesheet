@@ -1,4 +1,5 @@
 "use strict";
+/* This is a sample of how to create and update a timesheet with persistence ( it is not run in any CI builds) */
 var uuid = require('node-uuid');
 let Timesheet = require('./TimesheetAggregate');
 let repository = require('./documentDbRepository');
