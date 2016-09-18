@@ -16,7 +16,8 @@
   },
   "devDependencies": {
     "aws-sdk": "^2.6.1",
-    "mocha": "^3.0.2"
+    "mocha": "^3.0.2",
+    "node-rest-client": "^2.0.1"
   },
   "scripts": {
     "env": "env",

@@ -65,13 +65,24 @@ class Timesheet extends AggregateBase {
     };
     super._raiseEvent(timesheetUpdatedEvent);
   }
-  handleTimesheetCreated(timesheetCreated){
-    this.isSubmitted = false;
-    this.status = "Saved, pending submission"
+  submit(submitTimesheetPayload){
+    if (this.version == SEED_VERSION)
+      throw new InvalidOperationException("Can not submit an uninitialised Aggregate, submit can not be executed as the first action.");
+    if(this.isSubmitted)
+      throw new InvalidOperationException("Can not submit a timesheet that is already submitted.");
+    var submitTimesheetEvent = {
+      "id" : this.id,
+      "eventId" : this.version + 1,
+      "eventType" : "TimesheetSubmitted",
+      "sourceLambdaEvent" : JSON.stringify(submitTimesheetPayload),
+      "event" : submitTimesheetPayload.body
+    };
+    super._raiseEvent(submitTimesheetEvent);
   }
-  handleTimesheetUpdated(timesheetUpdated){
-    this.isSubmitted = false;
-    this.status = "Saved, pending submission"
+  handleTimesheetCreated(timesheetCreated){}
+  handleTimesheetUpdated(timesheetUpdated){}
+  handleTimesheetSubmitted(timesheetUpdated){
+    this.isSubmitted = true;
   }
   constructor(uuid) {
     super(uuid);
@@ -79,7 +90,8 @@ class Timesheet extends AggregateBase {
     this._routeEvents = {
       //TODO - if i dont wrap the instance function below, 'this' is undefined in the execution of the method (?!). I probably need an ES6 adult to help here
       "TimesheetCreated" : (e) => { this.handleTimesheetCreated(e); },
-      "TimesheetUpdated" : (e) => { this.handleTimesheetUpdated(e); } ,
+      "TimesheetUpdated" : (e) => { this.handleTimesheetUpdated(e); },
+      "TimesheetSubmitted" : (e) => { this.handleTimesheetSubmitted(e); } ,
     };
     this.isSubmitted = false;
   }

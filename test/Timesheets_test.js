@@ -55,6 +55,59 @@ describe('Timesheet', function() {
       );
     });
   });
+  describe('submit', function() {
+    it('submit a timesheetSubmittedEvent', function() {
+      let tsId = uuid.v1();
+      let t = new Timesheet(tsId);
+      t.create(create_createTimesheetCommand());
+      let cmd = (create_submitTimesheetCommand());
+      t.submit(cmd);
+      assert(t._uncommittedEvents.length == 2, "expected 2 uncommited events");
+      let submittedEvent = t._uncommittedEvents[1];
+      assert.deepEqual(cmd.body, submittedEvent.event)
+      assert.equal(submittedEvent.id,  tsId);
+      assert.equal(submittedEvent.eventId,  2);
+      assert.equal(submittedEvent.eventsMetadata.eventType,  "TimesheetSubmitted");
+      assert.equal(submittedEvent.eventsMetadata.aggregateType,  "Timesheet");
+    });
+    it('submit an timesheetSubmittedEvent to an updated timesheet', function() {
+      let tsId = uuid.v1();
+      let t = new Timesheet(tsId);
+      t.create(create_createTimesheetCommand());
+      t.update(create_updateTimesheetCommand());
+      let cmd = (create_submitTimesheetCommand());
+      t.submit(cmd);
+      assert(t._uncommittedEvents.length == 3, "expected 3 uncommited events");
+      let submittedEvent = t._uncommittedEvents[2];
+      assert.deepEqual(cmd.body, submittedEvent.event)
+      assert.equal(submittedEvent.id,  tsId);
+      assert.equal(submittedEvent.eventId,  3);
+      assert.equal(submittedEvent.eventsMetadata.eventType,  "TimesheetSubmitted");
+      assert.equal(submittedEvent.eventsMetadata.aggregateType,  "Timesheet");
+    });
+    it('cannot send submit command as first command', function() {
+      let tsId = uuid.v1();
+      let t = new Timesheet(tsId);
+      assert.throws(
+        () => {
+           t.update(create_submitTimesheetCommand());
+        },
+        "InvalidOperationException: Can not submit an uninitialised Aggregate, submit can not be executed as the first action."
+      );
+    });
+    it('cannot send submit command to a suubmitted timesheet', function() {
+      let tsId = uuid.v1();
+      let t = new Timesheet(tsId);
+      t.create(create_createTimesheetCommand());
+      t.submit(create_submitTimesheetCommand());     
+      assert.throws(
+        () => {
+           t.update(create_submitTimesheetCommand());
+        },
+        "InvalidOperationException: Can not submit a timesheet that is already submitted."
+      );
+    });
+  });
   
   function create_createTimesheetCommand(){
     return { 
@@ -95,7 +148,7 @@ describe('Timesheet', function() {
           "isPrivate" : true
         }
       }
-    }
+    };
   }
   
   function create_updateTimesheetCommand(){
@@ -137,6 +190,9 @@ describe('Timesheet', function() {
           "isPrivate" : true
         }
       }
-    }
+    };
+  }
+  function create_submitTimesheetCommand(){
+    return { "body":{} };
   }
 });
