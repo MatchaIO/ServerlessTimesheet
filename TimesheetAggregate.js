@@ -36,7 +36,8 @@ class AggregateBase {
 
 class Timesheet extends AggregateBase {
   get aggregateType() {
-    return "Timesheet";
+    throw new Error("Trying to break the build");
+    // return "Timesheet";
   }
 
   create(createTimesheetPayload) {
