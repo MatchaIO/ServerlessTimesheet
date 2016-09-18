@@ -54,6 +54,12 @@ functions:
       - http: 
           path: timesheet/{id}
           method: PUT
+  submitTimesheet:
+    handler: handler.submitTimesheet
+    events:
+      - http: 
+          path: timesheet/{id}/submit
+          method: POST
 
 resources:
   Resources:
