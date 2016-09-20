@@ -16,11 +16,18 @@
   },
   "devDependencies": {
     "aws-sdk": "^2.6.1",
+    "eslint": "^3.5.0",
+    "eslint-config-standard": "^6.0.1",
+    "eslint-plugin-promise": "^2.0.1",
+    "eslint-plugin-standard": "^2.0.0",
     "mocha": "^3.0.2",
     "node-rest-client": "^2.0.1"
   },
   "scripts": {
     "env": "env",
-    "test": "mocha test/"
+    "lint": "eslint *.js",
+    "test": "mocha test/",
+
+    "pretest": "npm run lint"
   }
 }

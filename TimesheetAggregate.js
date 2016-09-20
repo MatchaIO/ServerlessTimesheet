@@ -9,7 +9,7 @@ class AggregateBase {
     this._routeEvents = {}; //Must be overridden in inherited classes
   }
   get aggregateType() {
-    throw "Not Implemented"
+    throw "Not Implemented";
   }
   _applyEvent(record) {
     var route = this._routeEvents[record.eventsMetadata.eventType];
@@ -79,14 +79,17 @@ class Timesheet extends AggregateBase {
     };
     super._raiseEvent(submitTimesheetEvent);
   }
+ 
+  /* eslint-disable  no-unused-vars */
   handleTimesheetCreated(timesheetCreated){}
   handleTimesheetUpdated(timesheetUpdated){}
   handleTimesheetSubmitted(timesheetUpdated){
     this.isSubmitted = true;
   }
+  /* eslint-enable  no-unused-vars */
+
   constructor(uuid) {
     super(uuid);
-    var self = this;
     this._routeEvents = {
       //TODO - if i dont wrap the instance function below, 'this' is undefined in the execution of the method (?!). I probably need an ES6 adult to help here
       "TimesheetCreated" : (e) => { this.handleTimesheetCreated(e); },
@@ -98,10 +101,10 @@ class Timesheet extends AggregateBase {
 }
 class InvalidOperationException {
   constrcutor(message){
-   this.message = message;
-   this.toString = function() {
+    this.message = message;
+    this.toString = function() {
       return "InvalidOperationException:" + this.message;
-   };
+    };
   }
 }
 module.exports = Timesheet;

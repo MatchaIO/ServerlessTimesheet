@@ -4,7 +4,7 @@ AWS.config.update({
   region: "ap-southeast-2"
 });
 //https://blogs.aws.amazon.com/javascript/post/Tx3BZ2DC4XARUGG/Support-for-Promises-in-the-SDK
-AWS.config.setPromisesDependency(require('q').Promise)
+AWS.config.setPromisesDependency(require("q").Promise);
 
 //The aggregate here is the newly constructed aggregate (ie new MyAggregate("myId")) with no events passed thru it.
 function hydrateAggregate(aggregate){
@@ -16,7 +16,7 @@ function hydrateAggregate(aggregate){
               throw new AggregateNotFoundException(aggregate);
             }
             data.Items.forEach(function(item) {
-              aggregate._applyEvent(item)          
+              aggregate._applyEvent(item);          
             });
             return aggregate;
           })
@@ -26,19 +26,19 @@ function hydrateAggregate(aggregate){
           });
 }
 function saveAggregate(aggregateInstance){
-  let tableName = getTableName(aggregateInstance) 
+  let tableName = getTableName(aggregateInstance);
   var params = { RequestItems: { } };
-  params.RequestItems[tableName]= aggregateInstance._uncommittedEvents.map((e)=> { return { PutRequest: { Item: e } }; })
+  params.RequestItems[tableName]= aggregateInstance._uncommittedEvents.map((e)=> { return { PutRequest: { Item: e } }; });
   let docClient = new AWS.DynamoDB.DocumentClient();
   return docClient.batchWrite(params).promise();  
 }
 
 function AggregateNotFoundException(aggregateInstance) {
-   this.tableName = getTableName(aggregateInstance);
-   this.id = aggregateInstance.id;
-   this.toString = () => {
-      return "Can not find aggregate from table '" + this.tableName + "' with id '" + this.id +"'.";
-   };
+  this.tableName = getTableName(aggregateInstance);
+  this.id = aggregateInstance.id;
+  this.toString = () => {
+    return "Can not find aggregate from table '" + this.tableName + "' with id '" + this.id +"'.";
+  };
 }
 function getParametersFor(aggregateInstance){
   return {
@@ -48,11 +48,11 @@ function getParametersFor(aggregateInstance){
   };
 }
 function getTableName(aggregateInstance){
-  return  aggregateInstance.constructor.name +'s';//Table name is pluralised, but it certainly does not have to be
+  return  aggregateInstance.constructor.name + "s";//Table name is pluralised, but it certainly does not have to be
 }
 
 module.exports = {
   hydrateAggregate : hydrateAggregate,
   saveAggregate: saveAggregate
-}
+};
 
