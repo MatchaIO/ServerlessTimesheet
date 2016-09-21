@@ -1,6 +1,6 @@
 {
   "name": "ServerlessTimesheet",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Timsheets on the Serverless stack",
   "repository": {
     "type": "git",
@@ -26,14 +26,11 @@
   "scripts": {
     "env": "env",
     "lint": "eslint *.js",
-
     "pretest": "npm run lint",
     "test": "mocha test/",
-
-    "version:patch" : "npm version patch",
-    "git:pushtag"	: "git push --tags origin HEAD:master",
+    "version:patch": "npm version patch",
+    "git:pushtag": "git push --tags origin HEAD:master",
     "tag": "npm run version:patch && npm run git:push"
-
   },
   "lambci": {
     "cmd": "npm install && npm test && npm run tag"
