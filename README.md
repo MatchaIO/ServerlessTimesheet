@@ -5,7 +5,7 @@ Timsheets on the Serverless stack
 
 
 You will need NPM installed
-Serverless should be installed globally via NPM (currently 1.0.0. rc) 
+Serverless should be installed globally via NPM (currently 1.0.0. rc) - see`` ~\scripts\1_InitialiseProject.bat``
 (all cli commands are assumed to be executed from project root)
 To install the dependencies run:
 ```
@@ -34,9 +34,9 @@ be sure to replace the url with what was provided. You should receive a response
 
 ### Hints and notes
 Mocha is used as the test framework, seems to be most popular, so lets roll with that.
-https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
 
-Favouring using NPM as the build tool unitll we really need more. see: https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
+
+Favouring using NPM as the build tool unitll we really need more. See: https://www.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
 
 ### Build server
 Using LambCI for build automation : https://github.com/lambci/lambci
