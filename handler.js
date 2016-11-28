@@ -47,6 +47,7 @@ module.exports.updateTimesheet = (event, context, callback) => {
             callback(new Error("[404] Entity Not found - " + JSON.stringify(event) + " - error: " + JSON.stringify(error)));
           });  
 };
+
 module.exports.submitTimesheet = (event, context, callback) => {
   let timesheetId = event.path.id;
   repository.hydrateAggregate(new Timesheet(timesheetId))
