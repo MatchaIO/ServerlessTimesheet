@@ -39,7 +39,11 @@ module.exports.updateTimesheet = (event, context, callback) => {
                 if(unprocessedEntities.length !=0)
                   console.error({"unprocessedEntities" :unprocessedEntities}); //Um what to do here?
                 console.log("Timesheet updated. JSON:", JSON.stringify(timesheet));
-                let response = { message: "Timesheet Updated", timesheetId: timesheet.id , data: timesheet};
+                let response = {
+                  "statusCode": 200,
+                  "headers": { },
+                  "body": { message: "Timesheet Updated", timesheetId: timesheet.id , data: timesheet}
+                };
                 callback(null, response);
               })
               .catch((error) => {
