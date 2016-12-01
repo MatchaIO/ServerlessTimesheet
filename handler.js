@@ -5,7 +5,14 @@ let repository = require("./documentDbRepository");
 
 module.exports.createTimesheet = (event, context, callback) => {
   let newTimesheet = new Timesheet(uuid.v1());
-  newTimesheet.create(event);
+  try{
+    newTimesheet.create(event);
+  }
+  catch(error){
+    console.error(error);
+    callback(new Error("[422] Unprocessable Entity - " + JSON.stringify(event) + " - error: " + JSON.stringify(error)));
+    return;
+  }
   repository.saveAggregate(newTimesheet)
     /* eslint-disable  no-unused-vars */
     .then((unprocessedEntities)=> {
