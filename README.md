@@ -27,7 +27,7 @@ To deploy (using the credentials above):
 
 On completion of deployment you will see a post endpoint that you can hit with a sample payload, eg:
 ```
->>curl -X POST https://randomprefix.execute-api.ap-southeast-2.amazonaws.com/dev/timesheet --header "Content-Type: application/json" -d @samplepayloads/createTimesheetPayload.json
+>>curl -X POST https://randomprefix.execute-api.ap-southeast-2.amazonaws.com/dev/timesheet --header "Content-Type: application/json" -d @samples/sampleCreatePayload.json
 ```
 be sure to replace the url with what was provided. You should receive a response with a success message and a timesheet id
 
