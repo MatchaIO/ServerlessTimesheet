@@ -11,14 +11,17 @@ module.exports.createTimesheet = (event, context, callback) => {
   catch(error){
     console.error(error);
     callback(new Error("[422] Unprocessable Entity - " + JSON.stringify(event) + " - error: " + JSON.stringify(error)));
-    return;
   }
   repository.saveAggregate(newTimesheet)
     /* eslint-disable  no-unused-vars */
     .then((unprocessedEntities)=> {
     /* eslint-enable  no-unused-vars */
       console.log("Created Timesheet. JSON:", JSON.stringify(newTimesheet));
-      let response = { message: "Created Timesheet", timesheetId: newTimesheet.id , data: newTimesheet};
+      let response = {
+        "statusCode": 200,
+        "headers": { },
+        "body": { message: "Created Timesheet", timesheetId: newTimesheet.id , data: newTimesheet}
+      };
       callback(null, response);
     })
     .catch((error) => {
@@ -39,11 +42,7 @@ module.exports.updateTimesheet = (event, context, callback) => {
                 if(unprocessedEntities.length !=0)
                   console.error({"unprocessedEntities" :unprocessedEntities}); //Um what to do here?
                 console.log("Timesheet updated. JSON:", JSON.stringify(timesheet));
-                let response = {
-                  "statusCode": 200,
-                  "headers": { },
-                  "body": { message: "Timesheet Updated", timesheetId: timesheet.id , data: timesheet}
-                };
+                let response = { message: "Timesheet Updated", timesheetId: timesheet.id , data: timesheet};
                 callback(null, response);
               })
               .catch((error) => {
