@@ -18,9 +18,8 @@ module.exports.createTimesheet = (event, context, callback) => {
     /* eslint-enable  no-unused-vars */
       console.log("Created Timesheet. JSON:", JSON.stringify(newTimesheet));
       let response = {
-        "statusCode": 200,
-        "headers": { },
-        "body": { message: "Created Timesheet", timesheetId: newTimesheet.id , data: newTimesheet}
+        statusCode: 200,
+        body: JSON.stringify({ message: "Created Timesheet", timesheetId: newTimesheet.id , data: newTimesheet})
       };
       callback(null, response);
     })
