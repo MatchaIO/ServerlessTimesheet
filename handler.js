@@ -2,33 +2,24 @@
 var uuid = require("node-uuid");
 let Timesheet = require("./TimesheetAggregate");
 let repository = require("./documentDbRepository");
+let Q = require("q");
 
 module.exports.createTimesheet = (event, context, callback) => {
-  let newTimesheet = new Timesheet(uuid.v1());
-  try{
+  Q.fcall(function () {
+    let newTimesheet = new Timesheet(uuid.v1());
     newTimesheet.create(event);
-  }
-  catch(error){
+    return newTimesheet;
+  })
+  .then(repository.saveAggregate)
+  .then((savedTimesheet) => {
+    callback(null, createCreatedResponse(savedTimesheet));
+  })
+  .catch((error) => {
     console.error(error);
+    console.error("Unable to save timesheet . Error JSON:", JSON.stringify(error));
     callback(new Error("[422] Unprocessable Entity - " + JSON.stringify(event) + " - error: " + JSON.stringify(error)));
-  }
-  repository.saveAggregate(newTimesheet)
-    /* eslint-disable  no-unused-vars */
-    .then((unprocessedEntities)=> {
-    /* eslint-enable  no-unused-vars */
-      console.log("Created Timesheet. JSON:", JSON.stringify(newTimesheet));
-      let response = {
-        statusCode: 200,
-        body: JSON.stringify({ message: "Created Timesheet", timesheetId: newTimesheet.id , data: newTimesheet})
-      };
-      callback(null, response);
-    })
-    .catch((error) => {
-      console.error(error);
-      console.error("Unable to save timesheet . Error JSON:", JSON.stringify(error));
-      callback(new Error("[422] Unprocessable Entity - " + JSON.stringify(event) + " - error: " + JSON.stringify(error)));
-    })
-    .done();
+  })
+  .done();
 };
 
 module.exports.updateTimesheet = (event, context, callback) => {
@@ -82,3 +73,11 @@ module.exports.submitTimesheet = (event, context, callback) => {
             callback(new Error("[404] Entity Not found - " + JSON.stringify(event) + " - error: " + JSON.stringify(error)));
           });  
 };
+
+function createCreatedResponse(aggregate){
+  console.log("Created " + aggregate.aggregateType + ". JSON:", JSON.stringify(aggregate));
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "Created " + aggregate.aggregateType, Id: aggregate.id , data: aggregate})
+  };
+}

@@ -30,7 +30,15 @@ function saveAggregate(aggregateInstance){
   var params = { RequestItems: { } };
   params.RequestItems[tableName]= aggregateInstance._uncommittedEvents.map((e)=> { return { PutRequest: { Item: e } }; });
   let docClient = new AWS.DynamoDB.DocumentClient();
-  return docClient.batchWrite(params).promise();  
+  return docClient.batchWrite(params)
+    .promise()
+    .then((unprocessedEvents)=>{
+      if(unprocessedEvents.length != 0){
+        console.error("All events were not saved", unprocessedEvents, aggregateInstance);
+        throw new Error("Save failed for aggregate: " + JSON.stringify(aggregateInstance));
+      }
+      return aggregateInstance;
+    });  
 }
 
 function AggregateNotFoundException(aggregateInstance) {
