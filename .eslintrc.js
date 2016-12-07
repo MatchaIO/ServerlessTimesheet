@@ -12,6 +12,10 @@ module.exports = {
             "error",
             2
         ],
+        "linebreak-style": [
+            "error",
+            "windows"
+        ],
         "quotes": [
             "error",
             "double"
@@ -20,6 +24,12 @@ module.exports = {
             "error",
             "always"
         ],
-        "no-console": "off",
+        "no-console": [
+           "off"
+        ],
+        /* This needs to go - but i need to find where describe & it comes from ;) */
+        "no-undef": [
+           "off"
+        ]
     }
 };
