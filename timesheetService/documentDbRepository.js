@@ -32,12 +32,17 @@ function saveAggregate(aggregateInstance){
   let docClient = new AWS.DynamoDB.DocumentClient();
   return docClient.batchWrite(params)
     .promise()
-    .then((unprocessedEvents)=>{
-      if(unprocessedEvents.length != 0){
-        console.error("All events were not saved", unprocessedEvents, aggregateInstance);
+    .then((data)=>{
+      // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#batchWrite-property
+      if(!isEmpty(data.UnprocessedItems)){
+        console.error("All events were not saved", data, aggregateInstance);
         throw new Error("Save failed for aggregate: " + JSON.stringify(aggregateInstance));
       }
       return aggregateInstance;
+    })
+    .catch((err)=>{
+      console.error(err);
+      throw new Error("Save failed for aggregate: " + JSON.stringify(aggregateInstance));
     });  
 }
 
@@ -58,9 +63,14 @@ function getParametersFor(aggregateInstance){
 function getTableName(aggregateInstance){
   return  aggregateInstance.constructor.name + "s";//Table name is pluralised, but it certainly does not have to be
 }
+function isEmpty(map) {
+  for(var key in map) {
+    return !map.hasOwnProperty(key);
+  }
+  return true;
+}
 
 module.exports = {
   hydrateAggregate : hydrateAggregate,
   saveAggregate: saveAggregate
 };
-

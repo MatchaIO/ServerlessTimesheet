@@ -18,13 +18,16 @@ class AggregateBase {
     ++this.version;
   }
   _raiseEvent(event) {
+    let timestamp = Date.now(); //milliseconds elapsed since 1 January 1970 00:00:00 UTC
+        
     var mappedEvent = {
       "id" : event.id,
+      "timestamp" : timestamp,
       "eventId" : event.eventId,
       "eventsMetadata" : {
         "aggregateType" : this.aggregateType,
         "eventType" : event.eventType,
-        "timestamp" : Date.now(), //milliseconds elapsed since 1 January 1970 00:00:00 UTC
+        "timestamp" : timestamp,
         "sourceLambdaEvent" : event.sourceLambdaEvent
       },
       "event" : event.event

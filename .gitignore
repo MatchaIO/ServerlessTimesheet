@@ -38,3 +38,5 @@ jspm_packages
 
 # Serverless packages
 .serverless
+
+.DS_Store
