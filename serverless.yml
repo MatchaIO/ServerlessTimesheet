@@ -35,28 +35,26 @@ provider:
 # you can add packaging information here
 package:
   exclude:
-    - .vscode
-    - Samples
-    - Scripts
-    - .gitignore
-    - readme.md
+    - ./**
+  include:
+    - timesheetService/*.js
 
 # https://github.com/serverless/serverless/blob/master/docs/02-providers/aws/events/01-apigateway.md
 functions:
   createTimesheet:
-    handler: handler.createTimesheet
+    handler: timesheetService/handler.createTimesheet
     events:
       - http: 
           path: timesheet
           method: POST
   updateTimesheet:
-    handler: handler.updateTimesheet
+    handler: timesheetService/handler.updateTimesheet
     events:
       - http: 
           path: timesheet/{id}
           method: PUT
   submitTimesheet:
-    handler: handler.submitTimesheet
+    handler: timesheetService/handler.submitTimesheet
     events:
       - http: 
           path: timesheet/{id}/submit
@@ -69,20 +67,25 @@ resources:
       DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
-          -
-            AttributeName: id
+          - AttributeName: id
             AttributeType: S
-          -
-            AttributeName: eventId
+          - AttributeName: timestamp
             AttributeType: N
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: id
             KeyType: HASH
-          -
-            AttributeName: eventId
+          - AttributeName: timestamp
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: 'NEW_IMAGE'
         TableName: 'Timesheets'
+  Outputs:  
+    TimesheetDbStreamArn:
+      Description: Table Stream arn of the newly create TimesheetDb DynamoDB table
+      Value:  
+        Fn::GetAtt: [TimesheetDb, StreamArn]
+      Export:
+        Name: "timesheets-dynamodb-stream-arn"
