@@ -29,9 +29,35 @@ provider:
         - "dynamodb:BatchWriteItem"
         - "dynamodb:Query"
         - "dynamodb:Scan"
+        - "dynamodb:GetShardIterator"
+        - "dynamodb:DescribeStream"
+        - "dynamodb:ListStreams"
       Resource:
-        - "Fn::Join": ["", ["arn:aws:dynamodb:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":table/Timesheets"]]
-
+        - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/Timesheets"
+    - Effect: "Allow"
+      Action: 
+        - "sts:AssumeRole"
+      Principal:
+        Service:
+          - "lambda.amazonaws.com"
+    - Effect: "Allow"
+      Action:
+        - "firehose:PutRecord"
+        - "firehose:PutRecordBatch"
+      Resource: 
+        - Fn::Sub: "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/${DataFirehoseStream}"
+    - Effect: "Allow"
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource: "*"
+      
 # you can add packaging information here
 package:
   exclude:
@@ -42,23 +68,31 @@ package:
 # https://github.com/serverless/serverless/blob/master/docs/02-providers/aws/events/01-apigateway.md
 functions:
   createTimesheet:
-    handler: timesheetService/handler.createTimesheet
+    handler: timesheetService/httpHandler.createTimesheet
     events:
       - http: 
           path: timesheet
           method: POST
   updateTimesheet:
-    handler: timesheetService/handler.updateTimesheet
+    handler: timesheetService/httpHandler.updateTimesheet
     events:
       - http: 
           path: timesheet/{id}
           method: PUT
   submitTimesheet:
-    handler: timesheetService/handler.submitTimesheet
+    handler: timesheetService/httpHandler.submitTimesheet
     events:
       - http: 
           path: timesheet/{id}/submit
           method: POST
+  eventStoreToDataLake:
+    handler: timesheetService/eventStoreToDataLakeHandler.handler
+    events:
+      - stream:
+          arn: Fn::GetAtt: [TimesheetDb, StreamArn]
+          batchSize: 50
+          startingPosition: TRIM_HORIZON
+          enabled: false
 
 resources:
   Resources:
@@ -82,6 +116,69 @@ resources:
         StreamSpecification:
           StreamViewType: 'NEW_IMAGE'
         TableName: 'Timesheets'
+    S3EventsBucketName:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "Timesheets-firehose-bucket"
+        VersioningConfiguration:
+          Status: Suspended
+    DataFirehoseStream:
+      Type: "AWS::KinesisFirehose::DeliveryStream"
+      Properties:
+        DeliveryStreamName: !Sub "Timesheets-firehose"
+        S3DestinationConfiguration:
+          BucketARN: 
+            Fn::Sub: "arn:aws:s3:::${S3EventsBucketName}"
+          BufferingHints:
+            IntervalInSeconds: 60
+            SizeInMBs: 2
+          CompressionFormat: UNCOMPRESSED #GZIP
+          Prefix: "" # I dont think we should default a prefix, unless we decide to share buckets
+          RoleARN:
+            Fn::GetAtt: [ DataFirehoseToS3Role, Arn ]
+          #EncryptionConfiguration:  EncryptionConfiguration - we can do this when we can manage keys
+    DataFirehoseToS3Role:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: "Timesheets-firehose-to-s3-role"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "firehose.amazonaws.com"
+              Action: "sts:AssumeRole"
+              Condition:
+                StringEquals:
+                  "sts:ExternalId":
+                    Ref: "AWS::AccountId"
+        Policies:
+          -
+            PolicyName: "Timesheets-firehose-to-s3-policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "s3:PutObject"
+                    - "s3:AbortMultipartUpload"
+                    - "s3:GetBucketLocation"
+                    - "s3:GetObject"
+                    - "s3:ListBucket"
+                    - "s3:ListBucketMultipartUploads"
+                  Resource:
+                    - !Sub "arn:aws:s3:::${S3EventsBucketName}"
+                    - !Sub "arn:aws:s3:::${S3EventsBucketName}/*"
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                  Resource: "*"     
   Outputs:  
     TimesheetDbStreamArn:
       Description: Table Stream arn of the newly create TimesheetDb DynamoDB table
