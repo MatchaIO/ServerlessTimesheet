@@ -6,7 +6,7 @@ let firehose = new AWS.Firehose({
 });
 let tableName = "Timesheets";
 
-exports.handler = (event, context, callback) => {
+module.exports.handler = (event, context, callback) => {
     let json_records = event.Records.map(function(rec) { return JSON.stringify(rec['dynamodb']).replace(/(?:\r\n|\r|\n)/g, '\\n') + '\\n'; });
     let mapped_records = json_records.map(function(rec){ return {'Data': rec }; });
     console.log('Records to be sent: ' + json_records.join(''));

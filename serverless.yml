@@ -186,3 +186,9 @@ resources:
         Fn::GetAtt: [TimesheetDb, StreamArn]
       Export:
         Name: "timesheets-dynamodb-stream-arn"
+    TimesheetDbStreamArn:
+      Description: Table Stream arn of the newly create TimesheetDb DynamoDB table
+      Value:  
+        Fn::GetAtt: [TimesheetDb, StreamArn]
+      Export:
+        Name: "timesheets-dynamodb-stream-arn"
