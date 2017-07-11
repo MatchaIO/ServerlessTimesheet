@@ -1,7 +1,7 @@
 "use strict";
 let AWS = require("aws-sdk");
 AWS.config.update({
-  region: "ap-southeast-2"
+  region: process.env.REGION
 });
 //https://blogs.aws.amazon.com/javascript/post/Tx3BZ2DC4XARUGG/Support-for-Promises-in-the-SDK
 AWS.config.setPromisesDependency(require("q").Promise);

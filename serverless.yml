@@ -9,6 +9,8 @@ provider:
   stage: dev
   region: us-east-1
   profile: serverless-rhystest_dev  
+  environment: 
+    REGION: ${self:provider.region}
 # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: "Allow"
@@ -86,7 +88,7 @@ functions:
             Fn::GetAtt: [TimesheetDb, StreamArn]
           batchSize: 50
           startingPosition: TRIM_HORIZON
-          enabled: false
+          enabled: true
 
 resources:
   Resources:
