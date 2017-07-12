@@ -1,24 +1,20 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
 # For full config options, check the docs:
 #    docs.serverless.com
-#
-# Happy Coding!
 
 service: matcha-serverless-timesheets 
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs4.3 #TODO ready for an upgrade? v6 is available
   stage: dev
-  region: ap-southeast-2
-  profile: serverless-rhystest_dev
+  region: us-east-1
+  profile: serverless-rhystest_dev  
+  environment: 
+    ORG: matcha
+    AGGREGATE_NAME: timesheet
+    REGION: ${self:provider.region}
+    SERVICE: ${self:provider.environment.ORG}-${self:provider.stage}-${self:provider.environment.AGGREGATE_NAME}
+
 # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: "Allow"
@@ -29,9 +25,37 @@ provider:
         - "dynamodb:BatchWriteItem"
         - "dynamodb:Query"
         - "dynamodb:Scan"
+        - "dynamodb:GetShardIterator"
+        - "dynamodb:DescribeStream"
+        - "dynamodb:ListStreams"
+      Resource:        
+        #NB: Fn::Sub: conflicts with the string template that serverless uses, so it usually just easier not to use it       
+        - Fn::Join: ["", ["arn:aws:dynamodb:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":table/", {"Ref": "TimesheetDb"}]]             
+    - Effect: "Allow"
+      Action:
+        - "firehose:PutRecord"
+        - "firehose:PutRecordBatch"
       Resource:
-        - "Fn::Join": ["", ["arn:aws:dynamodb:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":table/Timesheets"]]
-
+        - Fn::Join: ["", ["arn:aws:firehose:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":deliverystream/", {"Ref": "DataFirehoseStream"}]]
+    - Effect: "Allow"
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+      Resource: 
+        - 'Fn::Join':
+          - ':'
+          -
+            - 'arn:aws:logs'
+            - Ref: 'AWS::Region'
+            - Ref: 'AWS::AccountId'
+            - 'log-group:/aws/lambda/*:*:*' #TODO - we can proably do better than this too (it should only be for this service)
+    - Effect: "Allow"
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource: "*" #TODO HACK - Dont use * for a resource - get the template for the resource arn
+      
 # you can add packaging information here
 package:
   exclude:
@@ -42,23 +66,33 @@ package:
 # https://github.com/serverless/serverless/blob/master/docs/02-providers/aws/events/01-apigateway.md
 functions:
   createTimesheet:
-    handler: timesheetService/handler.createTimesheet
+    handler: timesheetService/httpHandler.createTimesheet
     events:
       - http: 
           path: timesheet
           method: POST
   updateTimesheet:
-    handler: timesheetService/handler.updateTimesheet
+    handler: timesheetService/httpHandler.updateTimesheet
     events:
       - http: 
           path: timesheet/{id}
           method: PUT
   submitTimesheet:
-    handler: timesheetService/handler.submitTimesheet
+    handler: timesheetService/httpHandler.submitTimesheet
     events:
       - http: 
           path: timesheet/{id}/submit
           method: POST
+  eventStoreToDataLake:
+    handler: timesheetService/eventStoreToDataLakeHandler.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: 
+            Fn::GetAtt: [TimesheetDb, StreamArn]
+          batchSize: 50
+          startingPosition: TRIM_HORIZON
+          enabled: true
 
 resources:
   Resources:
@@ -66,10 +100,11 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
+        TableName: '${self:provider.environment.SERVICE}-table'
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
-          - AttributeName: timestamp
+          - AttributeName: timestamp #This could be the incrementing event id specific to the AggregateId, i dont think using timestamp is essential here and may actually be a neagtive if there are multiple events produced at once
             AttributeType: N
         KeySchema:
           - AttributeName: id
@@ -81,11 +116,85 @@ resources:
           WriteCapacityUnits: 1
         StreamSpecification:
           StreamViewType: 'NEW_IMAGE'
-        TableName: 'Timesheets'
+    S3EventsBucketName:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "${self:provider.environment.SERVICE}-firehose-bucket"
+        VersioningConfiguration:
+          Status: Suspended
+    DataFirehoseStream:
+      Type: "AWS::KinesisFirehose::DeliveryStream"
+      Properties:
+        DeliveryStreamName: ${self:provider.environment.SERVICE}-firehose
+        S3DestinationConfiguration:
+          BucketARN: 
+            Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}]]
+          BufferingHints:
+            IntervalInSeconds: 60
+            SizeInMBs: 2
+          CompressionFormat: UNCOMPRESSED #GZIP
+          Prefix: "" # I dont think we should default a prefix, unless we decide to share buckets
+          RoleARN:
+            Fn::GetAtt: [ DataFirehoseToS3Role, Arn ]
+          #EncryptionConfiguration:  EncryptionConfiguration - we can do this when we can manage keys
+    DataFirehoseToS3Role:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: "${self:provider.environment.SERVICE}-firehose-to-s3-role"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "firehose.amazonaws.com"
+              Action: "sts:AssumeRole"
+              Condition:
+                StringEquals:
+                  "sts:ExternalId":
+                    Ref: "AWS::AccountId"
+        Policies:
+          -
+            PolicyName: "${self:provider.environment.SERVICE}-firehose-to-s3-policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "s3:PutObject"
+                    - "s3:AbortMultipartUpload"
+                    - "s3:GetBucketLocation"
+                    - "s3:GetObject"
+                    - "s3:ListBucket"
+                    - "s3:ListBucketMultipartUploads"
+                  Resource:
+                    - Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}]]
+                    - Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}, "/*"]]
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                  Resource: "*"     
   Outputs:  
+    TimesheetDbTableName:
+      Description: Table name TimesheetDb DynamoDB table
+      Value:  
+        Ref: TimesheetDb
+      Export:
+        Name: "${self:provider.environment.SERVICE}-dynamodb-table-name"
     TimesheetDbStreamArn:
       Description: Table Stream arn of the newly create TimesheetDb DynamoDB table
       Value:  
         Fn::GetAtt: [TimesheetDb, StreamArn]
       Export:
-        Name: "timesheets-dynamodb-stream-arn"
+        Name: "${self:provider.environment.SERVICE}-dynamodb-stream-arn"
+    S3EventsBucketArn:
+      Description: The data lake s3 bucket ARN that will contain all raw events
+      Value:  
+        Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}]]
+      Export:
+        Name: "${self:provider.environment.SERVICE}-event-s3-bucket-arn"
