@@ -1,12 +1,13 @@
 "use strict";
 let AWS = require("aws-sdk");
 let sns = new AWS.SNS({ apiVersion: "2010-03-31" });
+var parse = AWS.DynamoDB.Converter.output;
 let topicArn = null;
 
 module.exports.handler = (event, context, callback) => {
   setTopicArn(context);
   let json_records = event.Records.map(function (rec) { 
-    let record = rec["dynamodb"];
+    let record = parse({ "M": rec.dynamodb.NewImage});//Convert the DynamoDb NewImage stream record to a useable JSON object that represents what we actually wanterd to persist
     if(record.hasOwnProperty("eventsMetadata") && record.eventsMetadata.hasOwnProperty("sourceLambdaEvent")){
       delete record.eventsMetadata.sourceLambdaEvent;//We really dont (or at least should not) care about this in downstream handlers and its just message bloat
     }    

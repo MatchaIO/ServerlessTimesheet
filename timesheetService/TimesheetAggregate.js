@@ -11,16 +11,17 @@ class AggregateBase {
   get aggregateType() {
     throw "Not Implemented";
   }
+
   _applyEvent(record) {
-    var route = this._routeEvents[record.eventsMetadata.eventType];
+    let route = this._routeEvents[record.eventsMetadata.eventType];
     console.log({eventType: record.eventsMetadata.eventType, route: route}); 
     route(record.event);
-    ++this.version;
+    ++this.version; //Should equal this event's id
   }
   _raiseEvent(event) {
     let timestamp = Date.now(); //milliseconds elapsed since 1 January 1970 00:00:00 UTC
         
-    var mappedEvent = {
+    let mappedEvent = {
       "id" : event.id,
       "timestamp" : timestamp,
       "eventId" : event.eventId,
@@ -28,9 +29,9 @@ class AggregateBase {
         "aggregateType" : this.aggregateType,
         "eventType" : event.eventType,
         "timestamp" : timestamp,
-        "sourceLambdaEvent" : event.sourceLambdaEvent
+        "sourceLambdaEvent" : JSON.stringify(event.sourceLambdaEvent), // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
       },
-      "event" : event.event
+      "event" : JSON.stringify(event.event) // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
     };
     this._applyEvent(mappedEvent);
     this._uncommittedEvents.push(mappedEvent);
@@ -45,12 +46,12 @@ class Timesheet extends AggregateBase {
   create(createTimesheetPayload) {
     if (this.version != SEED_VERSION)
       throw new InvalidOperationException("Create can only be executed as the first action.");
-    var timesheetCreatedEvent = {
+    let timesheetCreatedEvent = {
       "id" : this.id,
       "eventId" : 1,
       "eventType" : "TimesheetCreated",
-      "sourceLambdaEvent" : JSON.stringify(createTimesheetPayload),
-      "event" : createTimesheetPayload.body
+      "sourceLambdaEvent" : createTimesheetPayload,
+      "event" : JSON.parse(createTimesheetPayload.body) 
     };
     super._raiseEvent(timesheetCreatedEvent);
   }
@@ -59,12 +60,12 @@ class Timesheet extends AggregateBase {
       throw new InvalidOperationException("Can not update an uninitialised Aggregate, update can not be executed as the first action.");
     if(this.isSubmitted)
       throw new InvalidOperationException("Can not update a submitted timesheet.");
-    var timesheetUpdatedEvent = {
+    let timesheetUpdatedEvent = {
       "id" : this.id,
       "eventId" : this.version + 1,
       "eventType" : "TimesheetUpdated",
-      "sourceLambdaEvent" : JSON.stringify(updateTimesheetPayload),
-      "event" : updateTimesheetPayload.body
+      "sourceLambdaEvent" : updateTimesheetPayload,
+      "event" : JSON.parse(updateTimesheetPayload.body)
     };
     super._raiseEvent(timesheetUpdatedEvent);
   }
@@ -73,12 +74,12 @@ class Timesheet extends AggregateBase {
       throw new InvalidOperationException("Can not submit an uninitialised Aggregate, submit can not be executed as the first action.");
     if(this.isSubmitted)
       throw new InvalidOperationException("Can not submit a timesheet that is already submitted.");
-    var submitTimesheetEvent = {
+    let submitTimesheetEvent = {
       "id" : this.id,
       "eventId" : this.version + 1,
       "eventType" : "TimesheetSubmitted",
-      "sourceLambdaEvent" : JSON.stringify(submitTimesheetPayload),
-      "event" : submitTimesheetPayload.body
+      "sourceLambdaEvent" : submitTimesheetPayload,
+      "event" : JSON.parse(submitTimesheetPayload.body)
     };
     super._raiseEvent(submitTimesheetEvent);
   }
@@ -103,7 +104,7 @@ class Timesheet extends AggregateBase {
   }
 }
 class InvalidOperationException {
-  constrcutor(message){
+  constructor(message){
     this.message = message;
     this.toString = function() {
       return "InvalidOperationException:" + this.message;

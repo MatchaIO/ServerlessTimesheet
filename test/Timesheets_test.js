@@ -92,7 +92,8 @@ describe("Timesheet", function() {
 
   function create_createTimesheetCommand(){
     return { 
-      "body":{
+      //I would prefer it to recieve the body as a json object :()
+      "body":JSON.stringify({
         "shifts" : [{
           "name" : "Monday",
           "startDateTime" : "2016-09-05T09:00:00+08:00",
@@ -127,13 +128,13 @@ describe("Timesheet", function() {
           "text" : "Remind the boss to approve",
           "isPrivate" : true
         }
-      }
+      })
     };
   }
   
   function create_updateTimesheetCommand(){
     return { 
-      "body":{
+      "body":JSON.stringify({
         "shifts" : [{
           "name" : "Monday",
           "startDateTime" : "2016-09-05T10:00:00+08:00",
@@ -168,10 +169,10 @@ describe("Timesheet", function() {
           "text" : "Remind payroll to transfer funds to new account",
           "isPrivate" : true
         }
-      }
+      })
     };
   }
   function create_submitTimesheetCommand(){
-    return { "body":{} };
+    return { "body":JSON.stringify({}) };
   }
 });
