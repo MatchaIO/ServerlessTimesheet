@@ -39,6 +39,11 @@ provider:
         - Fn::Join: ["", ["arn:aws:firehose:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":deliverystream/", {"Ref": "DataFirehoseStream"}]]
     - Effect: "Allow"
       Action:
+        - "sns:Publish"
+      Resource:
+        - Ref: SnsEventsTopic
+    - Effect: "Allow"
+      Action:
         - "logs:CreateLogGroup"
         - "logs:CreateLogStream"
         - "logs:PutLogEvents"

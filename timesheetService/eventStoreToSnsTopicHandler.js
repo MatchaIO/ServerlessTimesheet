@@ -1,10 +1,7 @@
 "use strict";
-var AWS = require("aws-sdk");
-console.log("Loading function");
+let AWS = require("aws-sdk");
 let sns = new AWS.SNS({ apiVersion: "2010-03-31" });
 let topicArn = null;
-
-`${process.env.SERVICE}-firehose`,
 
 module.exports.handler = (event, context, callback) => {
   setTopicArn(context);
@@ -36,8 +33,7 @@ module.exports.handler = (event, context, callback) => {
       }
     });
   }
-
-  callback(null, `Successfully processed ${event.Records.length} records.`); //TODO Callback for failed attempt!!!
+  callback(null, `Successfully processed ${event.Records.length} records.`);
 };
 
 function setTopicArn(context){
