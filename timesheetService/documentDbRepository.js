@@ -61,7 +61,7 @@ function getParametersFor(aggregateInstance){
   };
 }
 function getTableName(aggregateInstance){
-  return  aggregateInstance.constructor.name + "s";//Table name is pluralised, but it certainly does not have to be
+  return `${process.env.SERVICE}-table`  
 }
 function isEmpty(map) {
   for(var key in map) {
