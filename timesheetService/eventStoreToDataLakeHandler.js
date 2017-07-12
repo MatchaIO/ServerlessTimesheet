@@ -6,8 +6,9 @@ AWS.config.setPromisesDependency(require("q").Promise);
 
 module.exports.handler = (event, context, callback) => {
   console.log({ "message": "Recieved records", "event": event });
-  let mapped_records = event.Records.map(parseToOriginalEvent).map(serialiseForFirehose);
-  console.log("Records to be sent: " + mapped_records.join(""));
+  let json_records = event.Records.map(parseToOriginalEvent).map(serialiseForFirehose);
+  console.log("Records to be sent: " + JSON.stringify(json_records.join("")));
+  let mapped_records = json_records.map(mapForFirehose);
 
   let params = createPutRecordsBatchParams(mapped_records);
   firehose.putRecordBatch(params)
@@ -25,14 +26,15 @@ module.exports.handler = (event, context, callback) => {
 
 function parseToOriginalEvent(dynamoDbStreamRecord) {
   let record = parse({ "M": dynamoDbStreamRecord.dynamodb.NewImage });//Convert the DynamoDb NewImage stream record to a useable JSON object that represents what we actually wanterd to persist
-  let businessEventAsObject = JSON.parse(record.event);
-  let sourceLambdaEventAsObject = JSON.parse(record.eventsMetadata.sourceLambdaEvent);
-  record.event = businessEventAsObject;
-  record.eventsMetadata.sourceLambdaEvent = sourceLambdaEventAsObject;
+  let businessEventAsObject = JSON.parse(record.event);  
+  record.event = businessEventAsObject;  
   return record;
 }
 function serialiseForFirehose(record) {
-  return { "Data": JSON.stringify(record).replace(/(?:\r\n|\r|\n)/g, "\\n") + "\\n" };
+  return JSON.stringify(record).replace(/(?:\r\n|\r|\n)/g, "\\n") + "\n";
+}
+function mapForFirehose(flattenedJson) {
+  return { "Data": flattenedJson };
 }
 function createPutRecordsBatchParams(mapped_records){
   return {

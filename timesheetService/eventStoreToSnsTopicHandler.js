@@ -6,26 +6,14 @@ let topicArn = null;
 
 module.exports.handler = (event, context, callback) => {
   setTopicArn(context);
-  let json_records = event.Records.map(function (rec) { 
-    let record = parse({ "M": rec.dynamodb.NewImage});//Convert the DynamoDb NewImage stream record to a useable JSON object that represents what we actually wanterd to persist
-    if(record.hasOwnProperty("eventsMetadata") && record.eventsMetadata.hasOwnProperty("sourceLambdaEvent")){
-      delete record.eventsMetadata.sourceLambdaEvent;//We really dont (or at least should not) care about this in downstream handlers and its just message bloat
-    }    
-    return JSON.stringify(record);
-  });  
-  console.log("Records to be published: " + json_records.join(""));
-
-  for (var json_record in json_records) {
-    let params = {
-      Message: json_record,      
-      TopicArn: topicArn
-    };
-
-    sns.publish(params, function(err, data) {
+  let mapped_records = event.Records.map(parseToPublishableEvent);
+  for (let mapped_record of mapped_records) {
+    console.log({ "Message": "Publishing event", "params": mapped_record });
+    sns.publish(mapped_record, function (err, data) {
       if (err) {
         console.error("sns.publish failed:");
         console.error(err, err.stack);
-        callback(err); 
+        callback(err);
         return;
       }
       else {
@@ -37,9 +25,21 @@ module.exports.handler = (event, context, callback) => {
   callback(null, `Successfully processed ${event.Records.length} records.`);
 };
 
-function setTopicArn(context){
-  if(topicArn === null){
+function setTopicArn(context) {
+  if (topicArn === null) {
     let accountId = context.invokedFunctionArn.split(":")[4];
     topicArn = `arn:aws:sns:${process.env.REGION}:${accountId}:${process.env.SERVICE}-sns-topic`;
   }
+}
+function parseToPublishableEvent(dynamoDbStreamRecord) {
+  let record = parse({ "M": dynamoDbStreamRecord.dynamodb.NewImage });//Convert the DynamoDb NewImage stream record to a useable JSON object that represents what we actually wanterd to persist
+  if (record.hasOwnProperty("eventsMetadata") && record.eventsMetadata.hasOwnProperty("sourceLambdaEvent")) {
+    delete record.eventsMetadata.sourceLambdaEvent;//We really dont (or at least should not) care about this in downstream handlers and its just message bloat
+  }
+  let businessEventAsObject = JSON.parse(record.event);
+  record.event = businessEventAsObject;
+  return {
+    Message: JSON.stringify(record),
+    TopicArn: topicArn
+  };
 }

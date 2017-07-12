@@ -92,7 +92,7 @@ describe("Timesheet", function() {
 
   function create_createTimesheetCommand(){
     return { 
-      //I would prefer it to recieve the body as a json object :()
+      //I would prefer it to recieve the body as a json object :(
       "body":JSON.stringify({
         "shifts" : [{
           "name" : "Monday",
