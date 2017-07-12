@@ -52,3 +52,15 @@ Run Tests
 ```
 >>npm test
 ```
+## PubSub
+You can configure a subscriber to the SNS message, to test just mnaully create a lambda trigeer by the sns topic we have created and add the following code to see events that you have subscribed to:
+```
+exports.handler = (event, context, callback) => {
+    console.log("In the test Subscriber Handler. Persisted business events are:");
+    let json_records = event.Records.map((x) => JSON.parse(x.Sns.Message));
+    for(let js_rec of json_records){
+        console.log(js_rec);
+    }
+    callback(null, 'Hello from Lambda');
+};
+```
