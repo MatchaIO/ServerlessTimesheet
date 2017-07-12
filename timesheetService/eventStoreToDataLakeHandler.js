@@ -23,5 +23,5 @@ module.exports.handler = (event, context, callback) => {
       console.log(data);
     }
   });
-  callback(null, `Successfully processed ${event.Records.length} records.`);
+  callback(null, `Successfully processed ${event.Records.length} records.`); //TODO Callback for failed attempt!!!
 };
