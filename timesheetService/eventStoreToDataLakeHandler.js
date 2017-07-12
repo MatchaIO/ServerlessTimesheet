@@ -4,7 +4,6 @@ console.log("Loading function");
 let firehose = new AWS.Firehose({
   apiVersion: "2015-08-04",
 });
-let tableName = "Timesheets";
 
 module.exports.handler = (event, context, callback) => {
   let json_records = event.Records.map(function(rec) { return JSON.stringify(rec["dynamodb"]).replace(/(?:\r\n|\r|\n)/g, "\\n") + "\\n"; });
@@ -12,7 +11,7 @@ module.exports.handler = (event, context, callback) => {
   console.log("Records to be sent: " + json_records.join(""));
 
   let params = {
-    DeliveryStreamName:  `${tableName}-firehose`,
+    DeliveryStreamName: `${process.env.SERVICE}-firehose`,
     Records: mapped_records
   };
   firehose.putRecordBatch(params, function(err, data) {

@@ -93,6 +93,16 @@ functions:
           batchSize: 50
           startingPosition: TRIM_HORIZON
           enabled: true
+  eventStoreToDataLake:
+    handler: timesheetService/eventStoreToSnsTopicHandler.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn: 
+            Fn::GetAtt: [TimesheetDb, StreamArn]
+          batchSize: 5
+          startingPosition: TRIM_HORIZON
+          enabled: true
 
 resources:
   Resources:
@@ -116,7 +126,7 @@ resources:
           WriteCapacityUnits: 1
         StreamSpecification:
           StreamViewType: 'NEW_IMAGE'
-    S3EventsBucketName:
+    S3EventsBucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: "${self:provider.environment.SERVICE}-firehose-bucket"
@@ -128,7 +138,7 @@ resources:
         DeliveryStreamName: ${self:provider.environment.SERVICE}-firehose
         S3DestinationConfiguration:
           BucketARN: 
-            Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}]]
+            Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucket"}]]
           BufferingHints:
             IntervalInSeconds: 60
             SizeInMBs: 2
@@ -170,8 +180,8 @@ resources:
                     - "s3:ListBucket"
                     - "s3:ListBucketMultipartUploads"
                   Resource:
-                    - Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}]]
-                    - Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}, "/*"]]
+                    - Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucket"}]]
+                    - Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucket"}, "/*"]]
                 -
                   Effect: "Allow"
                   Action:
@@ -179,6 +189,13 @@ resources:
                     - "logs:CreateLogStream"
                     - "logs:PutLogEvents"
                   Resource: "*"     
+    SnsEventsTopic:
+      Type: "AWS::SNS::Topic"
+      Properties: 
+        TopicName: "${self:provider.environment.SERVICE}-sns-topic"
+        DisplayName: "Topic for inter-service coms"
+        #Subscription: #nothing         
+        
   Outputs:  
     TimesheetDbTableName:
       Description: Table name TimesheetDb DynamoDB table
@@ -192,9 +209,21 @@ resources:
         Fn::GetAtt: [TimesheetDb, StreamArn]
       Export:
         Name: "${self:provider.environment.SERVICE}-dynamodb-stream-arn"
-    S3EventsBucketArn:
+    TimesheetS3EventsBucketArn:
       Description: The data lake s3 bucket ARN that will contain all raw events
       Value:  
-        Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucketName"}]]
+        Fn::Join: ["", ["arn:aws:s3:::", {"Ref": "S3EventsBucket"}]]
       Export:
         Name: "${self:provider.environment.SERVICE}-event-s3-bucket-arn"
+    TimesheetSnsTopicArn:
+      Description: The subscribeable SNS topic ARN that will publish events for other services to consume
+      Value:  
+        Ref: SnsEventsTopic # Is Arn for Topics
+      Export:
+        Name: "${self:provider.environment.SERVICE}-sns-topic-arn"
+    TimesheetSnsTopicName:
+      Description: The subscribeable SNS topic name that will publish events for other services to consume
+      Value:  
+        Fn::GetAtt: [SnsEventsTopic, TopicName]
+      Export:
+        Name: "${self:provider.environment.SERVICE}-sns-topic-name"
