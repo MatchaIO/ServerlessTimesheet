@@ -26,7 +26,7 @@ function hydrateAggregate(aggregate){
           });
 }
 function saveAggregate(aggregateInstance){
-  let tableName = getTableName(aggregateInstance);
+  let tableName = getTableName();
   var params = { RequestItems: { } };
   params.RequestItems[tableName]= aggregateInstance._uncommittedEvents.map((e)=> { return { PutRequest: { Item: e } }; });
   let docClient = new AWS.DynamoDB.DocumentClient();
@@ -47,7 +47,7 @@ function saveAggregate(aggregateInstance){
 }
 
 function AggregateNotFoundException(aggregateInstance) {
-  this.tableName = getTableName(aggregateInstance);
+  this.tableName = getTableName();
   this.id = aggregateInstance.id;
   this.toString = () => {
     return "Can not find aggregate from table '" + this.tableName + "' with id '" + this.id +"'.";
@@ -55,13 +55,13 @@ function AggregateNotFoundException(aggregateInstance) {
 }
 function getParametersFor(aggregateInstance){
   return {
-    TableName : getTableName(aggregateInstance), 
+    TableName : getTableName(), 
     KeyConditionExpression: "id = :v_id",
     ExpressionAttributeValues: { ":v_id": aggregateInstance.id }
   };
 }
-function getTableName(aggregateInstance){
-  return `${process.env.SERVICE}-table`  
+function getTableName(){
+  return `${process.env.SERVICE}-table`;  //Tightly coupled to the 'AWS::DynamoDB::Table' name in the Cloudformation resource section
 }
 function isEmpty(map) {
   for(var key in map) {
