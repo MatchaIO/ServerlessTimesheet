@@ -64,3 +64,6 @@ exports.handler = (event, context, callback) => {
     callback(null, 'Hello from Lambda');
 };
 ```
+
+# Generalised View of the Arch
+![Simplified Arch](https://user-images.githubusercontent.com/124152/28154560-2a87927e-67dd-11e7-9b06-075354cc7ccd.jpg)
