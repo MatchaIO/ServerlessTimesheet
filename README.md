@@ -59,7 +59,7 @@ exports.handler = (event, context, callback) => {
     console.log("In the test Subscriber Handler. Persisted business events are:");
     let json_records = event.Records.map((x) => JSON.parse(x.Sns.Message));
     for(let js_rec of json_records){
-        console.log(js_rec);
+        console.log(JSON.stringify(js_rec));
     }
     callback(null, 'Hello from Lambda');
 };
