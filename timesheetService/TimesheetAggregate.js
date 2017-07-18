@@ -115,5 +115,6 @@ class InvalidOperationException {
 }
 module.exports = {
   Timesheet:Timesheet,
-  AggregateBase: AggregateBase
+  AggregateBase: AggregateBase,
+  InvalidOperationException: InvalidOperationException  
 };
