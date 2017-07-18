@@ -60,6 +60,8 @@ describe("Dummy Aggregate", function() {
       assert.exists(e.eventsMetadata.eventType);
       assert.equal(e.eventsMetadata.aggregateType, sut.aggregateType);
       assert.equal(e.eventsMetadata.sourceLambdaEvent, JSON.stringify(createPayload));
+      assert.isString(e.event);
+      assert.equal(e.event, createPayload.body);
     });
   });
 });
