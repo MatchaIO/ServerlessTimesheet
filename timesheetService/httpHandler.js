@@ -1,6 +1,6 @@
 "use strict";
 var uuid = require("node-uuid");
-let Timesheet = require("./TimesheetAggregate");
+let Timesheet = require("./TimesheetAggregate").Timesheet;
 let repository = require("./documentDbRepository");
 let Q = require("q");
 

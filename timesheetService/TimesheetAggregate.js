@@ -3,6 +3,8 @@ const SEED_VERSION = 0;
 
 class AggregateBase {
   constructor(uuid) {
+    if (!uuid)
+      throw new InvalidOperationException("An Id must be supplied and should be a UUID.");
     this.id = uuid;
     this.version = SEED_VERSION;
     this._uncommittedEvents = [];
@@ -111,4 +113,7 @@ class InvalidOperationException {
     };
   }
 }
-module.exports = Timesheet;
+module.exports = {
+  Timesheet:Timesheet,
+  AggregateBase: AggregateBase
+};
