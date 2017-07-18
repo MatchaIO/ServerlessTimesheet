@@ -3,6 +3,8 @@ const SEED_VERSION = 0;
 
 class AggregateBase {
   constructor(uuid) {
+    if (!uuid)
+      throw new InvalidOperationException("An Id must be supplied and should be a UUID.");
     this.id = uuid;
     this.version = SEED_VERSION;
     this._uncommittedEvents = [];
@@ -103,12 +105,14 @@ class Timesheet extends AggregateBase {
     this.isSubmitted = false;
   }
 }
-class InvalidOperationException {
-  constructor(message){
-    this.message = message;
-    this.toString = function() {
-      return "InvalidOperationException:" + this.message;
-    };
+class InvalidOperationException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'InvalidOperationException';
   }
 }
-module.exports = Timesheet;
+module.exports = {
+  Timesheet:Timesheet,
+  AggregateBase: AggregateBase,
+  InvalidOperationException: InvalidOperationException  
+};

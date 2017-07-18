@@ -21,11 +21,12 @@
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
     "mocha": "^3.2.0",
+    "chai": "^4.1.0",
     "node-rest-client": "^2.0.1"
   },
   "scripts": {
     "env": "env",
-    "lint": "./node_modules/.bin/eslint **/*Service/*.js",
+    "lint": "./node_modules/.bin/eslint **/*Service/*.js, **/test/*.js",
     "pretest": "npm run lint",
     "test": "mocha test/",
     "version:patch": "npm version patch",
