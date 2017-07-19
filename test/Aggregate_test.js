@@ -1,8 +1,8 @@
 "use strict";
 var assert = require("chai").assert;
 var uuid = require("node-uuid");
-var AggregateBase = require("../timesheetService/TimesheetAggregate").AggregateBase;
-var InvalidOperationException = require("../timesheetService/TimesheetAggregate").InvalidOperationException;
+var AggregateBase = require("../timesheetService/eventStore").AggregateBase;
+var InvalidOperationException = require("../timesheetService/eventStore").InvalidOperationException;
 
 describe("Unimplemented Aggregate", function() {  
   it("required an Id on construction", function() {
@@ -21,9 +21,10 @@ describe("Dummy Aggregate", function() {
     let sut,id; 
     before(function() {      
       id = uuid.v1();
-      sut= new Dummy(id);  
+      sut = new Dummy(id);  
     });
     it("has an id", function() {     
+      assert.isNotNull(sut.id);
       assert.equal(sut.id, id);
     });
     it("has a version of 0", function() {     
@@ -65,8 +66,6 @@ describe("Dummy Aggregate", function() {
     });
   });
 });
-
-const SEED_VERSION = 0;
   
 class Dummy extends AggregateBase {
   get aggregateType() {
@@ -74,7 +73,7 @@ class Dummy extends AggregateBase {
   }
 
   create(createPayload) {
-    if (this.version != SEED_VERSION)
+    if (this.version != this.SEED_VERSION)
       throw new InvalidOperationException("Create can only be executed as the first action.");
     let createdEvent = {
       "id" : this.id,
@@ -86,7 +85,7 @@ class Dummy extends AggregateBase {
     super._raiseEvent(createdEvent);
   }
   update(updatePayload) {
-    if (this.version == SEED_VERSION)
+    if (this.version == this.SEED_VERSION)
       throw new InvalidOperationException("Can not update an uninitialised Aggregate, update can not be executed as the first action.");
     let updatedEvent = {
       "id" : this.id,
