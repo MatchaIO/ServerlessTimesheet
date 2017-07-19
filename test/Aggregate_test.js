@@ -73,12 +73,12 @@ describe("Dummy Aggregate", function() {
 class Dummy extends AggregateBase {
   
   create(createPayload) {
-    if (this.version != this.SEED_VERSION)
+    if (!this.isUninitialisedAggregate)
       throw new InvalidOperationException("Create can only be executed as the first action.");
     super._raiseEvent("DummyCreated", JSON.parse(createPayload.body), createPayload);
   }
   update(updatePayload) {
-    if (this.version == this.SEED_VERSION)
+    if (this.isUninitialisedAggregate)
       throw new InvalidOperationException("Can not update an uninitialised Aggregate, update can not be executed as the first action.");
     super._raiseEvent("DummyUpdated", JSON.parse(updatePayload.body), updatePayload);
   }

@@ -3,27 +3,28 @@
 var AggregateBase = require("./eventStore").AggregateBase;
 
 class Timesheet extends AggregateBase {
-  
+  /* BEGIN command handlers - these take in request and raise events */
   create(createTimesheetPayload) {
-    if (this.version != this.SEED_VERSION)
+    if (!this.isUninitialisedAggregate)
       throw new InvalidOperationException("Create can only be executed as the first action.");
     super._raiseEvent("TimesheetCreated", JSON.parse(createTimesheetPayload.body), createTimesheetPayload);
   }
   update(updateTimesheetPayload) {
-    if (this.version == this.SEED_VERSION)
+    if (this.isUninitialisedAggregate)
       throw new InvalidOperationException("Can not update an uninitialised Aggregate, update can not be executed as the first action.");
     if(this.isSubmitted)
       throw new InvalidOperationException("Can not update a submitted timesheet.");
     super._raiseEvent("TimesheetUpdated", JSON.parse(updateTimesheetPayload.body), updateTimesheetPayload);
   }
   submit(submitTimesheetPayload){
-    if (this.version == this.SEED_VERSION)
+    if (this.isUninitialisedAggregate)
       throw new InvalidOperationException("Can not submit an uninitialised Aggregate, submit can not be executed as the first action.");
     if(this.isSubmitted)
       throw new InvalidOperationException("Can not submit a timesheet that is already submitted.");
     super._raiseEvent("TimesheetSubmitted", JSON.parse(submitTimesheetPayload.body), submitTimesheetPayload);
   }
- 
+  /* END command handlers */
+  
   /* eslint-disable  no-unused-vars */
   handleTimesheetCreated(timesheetCreated){}
   handleTimesheetUpdated(timesheetUpdated){}
