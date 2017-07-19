@@ -45,14 +45,6 @@ function saveAggregate(aggregateInstance){
       throw new Error("Save failed for aggregate: " + JSON.stringify(aggregateInstance));
     });  
 }
-
-function AggregateNotFoundException(aggregateInstance) {
-  this.tableName = getTableName();
-  this.id = aggregateInstance.id;
-  this.toString = () => {
-    return "Can not find aggregate from table '" + this.tableName + "' with id '" + this.id +"'.";
-  };
-}
 function getParametersFor(aggregateInstance){
   return {
     TableName : getTableName(), 
@@ -70,7 +62,66 @@ function isEmpty(map) {
   return true;
 }
 
+const SEED_VERSION = 0;
+class AggregateBase {  
+  constructor(uuid) {
+    if (!uuid)
+      throw new InvalidOperationException("An Id must be supplied and should be a UUID.");
+    this.id = uuid;
+    this.version = this.SEED_VERSION;
+    this._uncommittedEvents = [];
+    this._routeEvents = {}; //Must be overridden in inherited classes
+  }
+  get aggregateType() {
+    throw "Not Implemented";
+  }
+  get SEED_VERSION() {
+    return SEED_VERSION;//const
+  }
+
+  _applyEvent(record) {
+    let route = this._routeEvents[record.eventsMetadata.eventType];
+    console.log({method: "_applyEvent", eventType: record.eventsMetadata.eventType, route: route.name, prototype: this.constructor.name}); 
+    route(record.event);
+    ++this.version; //Should equal this event's id
+  }
+  _raiseEvent(event) {
+    let timestamp = Date.now(); //milliseconds elapsed since 1 January 1970 00:00:00 UTC
+        
+    let mappedEvent = {
+      "id" : event.id,
+      "timestamp" : timestamp,
+      "eventId" : event.eventId,
+      "eventsMetadata" : {
+        "aggregateType" : this.aggregateType,
+        "eventType" : event.eventType,
+        "timestamp" : timestamp,
+        "sourceLambdaEvent" : JSON.stringify(event.sourceLambdaEvent), // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
+      },
+      "event" : JSON.stringify(event.event) // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
+    };
+    this._applyEvent(mappedEvent);
+    this._uncommittedEvents.push(mappedEvent);
+  }
+}
+class InvalidOperationException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "InvalidOperationException";
+  }
+}
+class AggregateNotFoundException extends Error {
+  constructor(aggregateInstance) {
+    let tableName = getTableName();
+    let id = aggregateInstance.id;
+    let message = `Can not find aggregate from table ${tableName}' with id '${id}'.`;
+    super(message);
+    this.name = "AggregateNotFoundException";
+  }
+}
 module.exports = {
   hydrateAggregate : hydrateAggregate,
-  saveAggregate: saveAggregate
+  saveAggregate: saveAggregate,
+  AggregateBase: AggregateBase,
+  InvalidOperationException: InvalidOperationException
 };

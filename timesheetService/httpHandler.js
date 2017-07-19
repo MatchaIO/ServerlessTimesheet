@@ -1,7 +1,7 @@
 "use strict";
 var uuid = require("node-uuid");
-let Timesheet = require("./TimesheetAggregate").Timesheet;
-let repository = require("./documentDbRepository");
+let Timesheet = require("./TimesheetAggregate");
+let repository = require("./eventStore");
 let Q = require("q");
 
 module.exports.createTimesheet = (event, context, callback) => {
