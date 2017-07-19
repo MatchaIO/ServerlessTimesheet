@@ -64,19 +64,21 @@ function isEmpty(map) {
 
 const SEED_VERSION = 0;
 class AggregateBase {  
+
   constructor(uuid) {
-    if (!uuid)
-      throw new InvalidOperationException("An Id must be supplied and should be a UUID.");
+    if (new.target === AggregateBase) throw new TypeError("Cannot construct AggregateBase instances directly");
+    if (!uuid) throw new InvalidOperationException("An Id must be supplied and should be a UUID.");
     this.id = uuid;
-    this.version = this.SEED_VERSION;
+    this.version = SEED_VERSION;
     this._uncommittedEvents = [];
     this._routeEvents = {}; //Must be overridden in inherited classes
   }
+
   get aggregateType() {
-    throw "Not Implemented";
+    return this.constructor.name;
   }
-  get SEED_VERSION() {
-    return SEED_VERSION;//const
+  get isUninitialisedAggregate() {
+    return this.version == SEED_VERSION;
   }
 
   _applyEvent(record) {
@@ -84,32 +86,36 @@ class AggregateBase {
     console.log({method: "_applyEvent", eventType: record.eventsMetadata.eventType, route: route.name, prototype: this.constructor.name}); 
     route(record.event);
     ++this.version; //Should equal this event's id
+    if(this.version != record.eventId) throw new InvalidOperationException("Postcondition check has failed: Aggregate version and event id do not match");
   }
-  _raiseEvent(event) {
+  
+  _raiseEvent(eventType, eventObject, sourceLambdaEvent) {
     let timestamp = Date.now(); //milliseconds elapsed since 1 January 1970 00:00:00 UTC
         
     let mappedEvent = {
-      "id" : event.id,
+      "id" : this.id,
       "timestamp" : timestamp,
-      "eventId" : event.eventId,
+      "eventId" : this.version + 1,
       "eventsMetadata" : {
         "aggregateType" : this.aggregateType,
-        "eventType" : event.eventType,
+        "eventType" : eventType,
         "timestamp" : timestamp,
-        "sourceLambdaEvent" : JSON.stringify(event.sourceLambdaEvent), // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
+        "sourceLambdaEvent" : JSON.stringify(sourceLambdaEvent), // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
       },
-      "event" : JSON.stringify(event.event) // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
+      "event" : JSON.stringify(eventObject) // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
     };
     this._applyEvent(mappedEvent);
     this._uncommittedEvents.push(mappedEvent);
   }
 }
+
 class InvalidOperationException extends Error {
   constructor(message) {
     super(message);
     this.name = "InvalidOperationException";
   }
 }
+
 class AggregateNotFoundException extends Error {
   constructor(aggregateInstance) {
     let tableName = getTableName();
@@ -119,6 +125,7 @@ class AggregateNotFoundException extends Error {
     this.name = "AggregateNotFoundException";
   }
 }
+
 module.exports = {
   hydrateAggregate : hydrateAggregate,
   saveAggregate: saveAggregate,

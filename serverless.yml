@@ -5,7 +5,7 @@ service: matcha-serverless-timesheets
 
 provider:
   name: aws
-  runtime: nodejs4.3 #TODO ready for an upgrade? v6 is available
+  runtime: nodejs6.10
   stage: dev
   region: us-east-1
   profile: serverless-rhystest_dev  
