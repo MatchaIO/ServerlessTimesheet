@@ -65,6 +65,9 @@ function isEmpty(map) {
 const SEED_VERSION = 0;
 class AggregateBase {  
   constructor(uuid) {
+    if (new.target === AggregateBase) {
+      throw new TypeError("Cannot construct AggregateBase instances directly");
+    }
     if (!uuid)
       throw new InvalidOperationException("An Id must be supplied and should be a UUID.");
     this.id = uuid;
@@ -73,7 +76,7 @@ class AggregateBase {
     this._routeEvents = {}; //Must be overridden in inherited classes
   }
   get aggregateType() {
-    throw "Not Implemented";
+    return this.constructor.name;
   }
   get SEED_VERSION() {
     return SEED_VERSION;//const
@@ -85,20 +88,21 @@ class AggregateBase {
     route(record.event);
     ++this.version; //Should equal this event's id
   }
-  _raiseEvent(event) {
+  
+  _raiseEvent(eventType, eventObject, sourceLambdaEvent) {
     let timestamp = Date.now(); //milliseconds elapsed since 1 January 1970 00:00:00 UTC
         
     let mappedEvent = {
-      "id" : event.id,
+      "id" : this.id,
       "timestamp" : timestamp,
-      "eventId" : event.eventId,
+      "eventId" : this.version + 1, //TODO BUG - currently just a refactoring, but it has always been a bug
       "eventsMetadata" : {
         "aggregateType" : this.aggregateType,
-        "eventType" : event.eventType,
+        "eventType" : eventType,
         "timestamp" : timestamp,
-        "sourceLambdaEvent" : JSON.stringify(event.sourceLambdaEvent), // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
+        "sourceLambdaEvent" : JSON.stringify(sourceLambdaEvent), // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
       },
-      "event" : JSON.stringify(event.event) // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
+      "event" : JSON.stringify(eventObject) // Can not save as a map as it has empty strings in the object, which DyDB is not keen on
     };
     this._applyEvent(mappedEvent);
     this._uncommittedEvents.push(mappedEvent);

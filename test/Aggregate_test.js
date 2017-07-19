@@ -5,18 +5,21 @@ var AggregateBase = require("../timesheetService/eventStore").AggregateBase;
 var InvalidOperationException = require("../timesheetService/eventStore").InvalidOperationException;
 
 describe("Unimplemented Aggregate", function() {  
-  it("required an Id on construction", function() {
-    assert.throws(() => new AggregateBase(), InvalidOperationException, "An Id must be supplied and should be a UUID");
-    assert.throws(() => new AggregateBase(null), InvalidOperationException, "An Id must be supplied and should be a UUID");
-    assert.doesNotThrow(() => new AggregateBase(uuid.v1()));
+  it("can not be instatiated", function() {
+    assert.throws(() => new AggregateBase(uuid.v1()), TypeError, "Cannot construct AggregateBase instances directly");
   });
-  it("throws on get aggregateType", function() {
-    assert.throws(() => new AggregateBase(), InvalidOperationException, "An Id must be supplied and should be a UUID");
-    assert.throws(() => new AggregateBase(null), InvalidOperationException, "An Id must be supplied and should be a UUID");
-    assert.doesNotThrow(() => new AggregateBase(uuid.v1()));
-  });  
 });
 describe("Dummy Aggregate", function() {  
+  it("required an Id on construction", function() {
+    assert.throws(() => new Dummy(), InvalidOperationException, "An Id must be supplied and should be a UUID");
+    assert.throws(() => new Dummy(null), InvalidOperationException, "An Id must be supplied and should be a UUID");
+    assert.doesNotThrow(() => new Dummy(uuid.v1()));
+  });
+  it("throws on get aggregateType", function() {
+    assert.throws(() => new Dummy(), InvalidOperationException, "An Id must be supplied and should be a UUID");
+    assert.throws(() => new Dummy(null), InvalidOperationException, "An Id must be supplied and should be a UUID");
+    assert.doesNotThrow(() => new Dummy(uuid.v1()));
+  });  
   describe("on constrction", function() {  
     let sut,id; 
     before(function() {      
@@ -68,33 +71,16 @@ describe("Dummy Aggregate", function() {
 });
   
 class Dummy extends AggregateBase {
-  get aggregateType() {
-    return "Dummy";
-  }
-
+  
   create(createPayload) {
     if (this.version != this.SEED_VERSION)
       throw new InvalidOperationException("Create can only be executed as the first action.");
-    let createdEvent = {
-      "id" : this.id,
-      "eventId" : 1,
-      "eventType" : "DummyCreated",
-      "sourceLambdaEvent" : createPayload,
-      "event" : JSON.parse(createPayload.body) 
-    };
-    super._raiseEvent(createdEvent);
+    super._raiseEvent("DummyCreated", JSON.parse(createPayload.body), createPayload);
   }
   update(updatePayload) {
     if (this.version == this.SEED_VERSION)
       throw new InvalidOperationException("Can not update an uninitialised Aggregate, update can not be executed as the first action.");
-    let updatedEvent = {
-      "id" : this.id,
-      "eventId" : this.version + 1,
-      "eventType" : "DummyUpdated",
-      "sourceLambdaEvent" : updatePayload,
-      "event" : JSON.parse(updatePayload.body)
-    };
-    super._raiseEvent(updatedEvent);
+    super._raiseEvent("DummyUpdated", JSON.parse(updatePayload.body), updatePayload);
   }
  
   /* eslint-disable  no-unused-vars */
