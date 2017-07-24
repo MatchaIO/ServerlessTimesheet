@@ -1,5 +1,5 @@
 "use strict";
-var uuid = require("node-uuid");
+var uuid = require("uuid");
 var Timesheet = require("../timesheetService/TimesheetAggregate");
 var assert = require("assert");
 

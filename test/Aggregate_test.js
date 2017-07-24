@@ -1,6 +1,6 @@
 "use strict";
 var assert = require("chai").assert;
-var uuid = require("node-uuid");
+var uuid = require("uuid");
 var AggregateBase = require("../timesheetService/eventStore").AggregateBase;
 var InvalidOperationException = require("../timesheetService/eventStore").InvalidOperationException;
 
