@@ -1,6 +1,7 @@
 "use strict";
 
 var AggregateBase = require("./eventStore").AggregateBase;
+var InvalidOperationException = require("./eventStore").InvalidOperationException;
 
 class Timesheet extends AggregateBase {
   /* BEGIN command handlers - these take in request and raise events */
@@ -26,9 +27,14 @@ class Timesheet extends AggregateBase {
   /* END command handlers */
   
   /* eslint-disable  no-unused-vars */
-  handleTimesheetCreated(timesheetCreated){}
-  handleTimesheetUpdated(timesheetUpdated){}
-  handleTimesheetSubmitted(timesheetUpdated){
+  handleTimesheetCreated(timesheetCreated){
+    console.log(timesheetCreated);
+  }
+  handleTimesheetUpdated(timesheetUpdated){
+    console.log(timesheetUpdated);
+  }
+  handleTimesheetSubmitted(timesheetSubmitted){
+    console.log(timesheetSubmitted);
     this.isSubmitted = true;
   }
   /* eslint-enable  no-unused-vars */

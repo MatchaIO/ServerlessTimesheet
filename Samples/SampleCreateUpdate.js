@@ -4,7 +4,7 @@ var uuid = require("node-uuid");
 let Timesheet = require("./TimesheetAggregate");
 let repository = require("./documentDbRepository");
 
-var t = new Timesheet(uuid.v1());
+var t = new Timesheet(uuid.v4());
 t.create({ 
   "body":{
     "shifts" : [{

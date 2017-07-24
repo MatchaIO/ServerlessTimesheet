@@ -7,7 +7,7 @@ var assert = require("assert");
 describe("Timesheet", function() {
   describe("create", function() {
     it("raise a timesheetCreatedEvent", function() {
-      let tsId = uuid.v1();
+      let tsId = uuid.v4();
       let t = new Timesheet(tsId);
       let cmd = create_createTimesheetCommand();
       t.create(cmd);
@@ -20,7 +20,7 @@ describe("Timesheet", function() {
       assert.equal(createdEvent.eventsMetadata.aggregateType,  "Timesheet");
     });
     it("cannot send create command more than once", function() {
-      let t = new Timesheet(uuid.v1());
+      let t = new Timesheet(uuid.v4());
       t.create(create_createTimesheetCommand());
       assert.throws(() => t.create(create_createTimesheetCommand()), "InvalidOperationException: Create can only be executed as the first action.");
     });
@@ -28,7 +28,7 @@ describe("Timesheet", function() {
 
   describe("update", function() {
     it("raise a timesheetUpdatedEvent", function() {
-      let tsId = uuid.v1();
+      let tsId = uuid.v4();
       let t = new Timesheet(tsId);
       t.create(create_createTimesheetCommand());
       let cmd = create_updateTimesheetCommand();
@@ -42,14 +42,14 @@ describe("Timesheet", function() {
       assert.equal(updatedEvent.eventsMetadata.aggregateType,  "Timesheet");
     });
     it("cannot send update command as first command", function() {
-      let t = new Timesheet(uuid.v1());
+      let t = new Timesheet(uuid.v4());
       assert.throws(() => t.update(create_updateTimesheetCommand()),"InvalidOperationException: Can not update an uninitialised Aggregate, update can not be executed as the first action.");
     });
   });
 
   describe("submit", function() {
     it("submit a timesheetSubmittedEvent", function() {
-      let tsId = uuid.v1();
+      let tsId = uuid.v4();
       let t = new Timesheet(tsId);
       t.create(create_createTimesheetCommand());
       let cmd = (create_submitTimesheetCommand());
@@ -63,7 +63,7 @@ describe("Timesheet", function() {
       assert.equal(submittedEvent.eventsMetadata.aggregateType,  "Timesheet");
     });
     it("submit an timesheetSubmittedEvent to an updated timesheet", function() {
-      let tsId = uuid.v1();
+      let tsId = uuid.v4();
       let t = new Timesheet(tsId);
       t.create(create_createTimesheetCommand());
       t.update(create_updateTimesheetCommand());
@@ -78,12 +78,12 @@ describe("Timesheet", function() {
       assert.equal(submittedEvent.eventsMetadata.aggregateType,  "Timesheet");
     });
     it("cannot send submit command as first command", function() {
-      let tsId = uuid.v1();
+      let tsId = uuid.v4();
       let t = new Timesheet(tsId);
       assert.throws(() => t.update(create_submitTimesheetCommand()), "InvalidOperationException: Can not submit an uninitialised Aggregate, submit can not be executed as the first action.");
     });
     it("cannot send submit command to a suubmitted timesheet", function() {
-      let t = new Timesheet(uuid.v1());
+      let t = new Timesheet(uuid.v4());
       t.create(create_createTimesheetCommand());
       t.submit(create_submitTimesheetCommand());     
       assert.throws(() => t.update(create_submitTimesheetCommand()),"InvalidOperationException: Can not submit a timesheet that is already submitted.");

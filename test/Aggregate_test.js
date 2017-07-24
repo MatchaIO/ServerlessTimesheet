@@ -6,24 +6,24 @@ var InvalidOperationException = require("../timesheetService/eventStore").Invali
 
 describe("Unimplemented Aggregate", function() {  
   it("can not be instatiated", function() {
-    assert.throws(() => new AggregateBase(uuid.v1()), TypeError, "Cannot construct AggregateBase instances directly");
+    assert.throws(() => new AggregateBase(uuid.v4()), TypeError, "Cannot construct AggregateBase instances directly");
   });
 });
 describe("Dummy Aggregate", function() {  
   it("required an Id on construction", function() {
     assert.throws(() => new Dummy(), InvalidOperationException, "An Id must be supplied and should be a UUID");
     assert.throws(() => new Dummy(null), InvalidOperationException, "An Id must be supplied and should be a UUID");
-    assert.doesNotThrow(() => new Dummy(uuid.v1()));
+    assert.doesNotThrow(() => new Dummy(uuid.v4()));
   });
   it("throws on get aggregateType", function() {
     assert.throws(() => new Dummy(), InvalidOperationException, "An Id must be supplied and should be a UUID");
     assert.throws(() => new Dummy(null), InvalidOperationException, "An Id must be supplied and should be a UUID");
-    assert.doesNotThrow(() => new Dummy(uuid.v1()));
+    assert.doesNotThrow(() => new Dummy(uuid.v4()));
   });  
   describe("on constrction", function() {  
     let sut,id; 
     before(function() {      
-      id = uuid.v1();
+      id = uuid.v4();
       sut = new Dummy(id);  
     });
     it("has an id", function() {     
@@ -40,9 +40,9 @@ describe("Dummy Aggregate", function() {
     
     before(function() { 
       startTime = Date.now();
-      id = uuid.v1();
+      id = uuid.v4();
       sut = new Dummy(id);
-      createPayload = { "body": JSON.stringify({ "alpha": uuid.v1() }) };
+      createPayload = { "body": JSON.stringify({ "alpha": uuid.v4() }) };
       sut.create(createPayload);  
     });
     
