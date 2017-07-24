@@ -11,8 +11,8 @@
   },
   "homepage": "https://github.com/MatchaIO/ServerlessTimesheet#readme",
   "dependencies": {
-    "node-uuid": "^1.4.7",
-    "q": "^1.4.1"
+    "q": "^1.4.1",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "aws-sdk": "^2.7.7",
@@ -33,7 +33,7 @@
     "git:pushtag": "git push --tags origin HEAD:master",
     "tag": "npm run version:patch && npm run git:pushtag"
   },
-  "lambci":{
+  "lambci": {
     "cmd": "npm install && nave use 6 npm test"
   }
 }

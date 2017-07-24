@@ -1,5 +1,5 @@
 "use strict";
-var uuid = require("node-uuid");
+var uuid = require("uuid");
 let Timesheet = require("./TimesheetAggregate");
 let repository = require("./eventStore");
 let Q = require("q");
