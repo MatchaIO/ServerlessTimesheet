@@ -32,8 +32,7 @@ module.exports.updateTimesheet = (event, context, callback) => {
                 if(unprocessedEntities.length !=0)
                   console.error({"unprocessedEntities" :unprocessedEntities}); //Um what to do here?
                 console.log("Timesheet updated. JSON:", JSON.stringify(timesheet));
-                let response = { message: "Timesheet Updated", timesheetId: timesheet.id , data: timesheet};
-                callback(null, response);
+                callback(null, createUpdatedResponse(timesheet));
               })
               .catch((error) => {
                 console.error(error);
@@ -80,6 +79,13 @@ function createCreatedResponse(aggregate){
   return {
     statusCode: 200,
     body: toCleanJson({ message: "Created " + aggregate.aggregateType, Id: aggregate.id , data: aggregate})
+  };
+}
+function createUpdatedResponse(aggregate){
+  console.log("Updated " + aggregate.aggregateType + ". JSON:", JSON.stringify(aggregate));
+  return {
+    statusCode: 200,
+    body: toCleanJson({ message: "Updated " + aggregate.aggregateType, Id: aggregate.id , data: aggregate})
   };
 }
 function createSubmittedResponse(aggregate){
